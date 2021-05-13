@@ -188,6 +188,9 @@ public class MusicPlayerPresenter implements MusicPlayerContract.Presenter {
                                 }
 
                                 mRepository.delete(t);
+
+                                mRepository.doTask(t);
+
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 mRepository.delete(t);

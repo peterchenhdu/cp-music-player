@@ -292,6 +292,57 @@ import java.util.List;
         });
     }
 
+    @Override
+    public Observable<Song> doTask(Task task) {
+        return Observable.create(new Observable.OnSubscribe<Song>() {
+            @Override
+            public void call(Subscriber<? super Song> subscriber) {
+                List<PlayList> playLists = mLiteOrm.query(
+                        QueryBuilder.create(PlayList.class).whereEquals(PlayList.NAME, "Star-" + task.getLevel())
+                );
+                if (playLists.isEmpty()) {
+                    PlayList levelPlayList = DBUtils.generateLevelPlayList(mContext);
+                    levelPlayList.setName("Star-" + task.getLevel());
+                    playLists.add(levelPlayList);
+                }
+                PlayList playList = playLists.get(0);
+
+                List<Song> songList = mLiteOrm.query(
+                        QueryBuilder.create(Song.class).whereEquals(Song.PATH, task.getPath())
+                );
+
+                Song song = songList.get(0);
+
+                song.setLevel(task.getLevel());
+                playList.setUpdatedAt(new Date());
+
+                if(song.getLevel() > 0) {
+                    List<PlayList> oldPlayLists = mLiteOrm.query(
+                            QueryBuilder.create(PlayList.class).whereEquals(PlayList.NAME, "Star-" + song.getLevel())
+                    );
+
+                    if(!oldPlayLists.isEmpty()) {
+                        oldPlayLists.get(0).removeSong(song);
+                        long result = mLiteOrm.insert(oldPlayLists.get(0), ConflictAlgorithm.Replace);
+                    }
+                }
+
+
+                // Insert song to the beginning of the list
+                playList.addSong(song, 0);
+
+                mLiteOrm.insert(song, ConflictAlgorithm.Replace);
+                long result = mLiteOrm.insert(playList, ConflictAlgorithm.Replace);
+                if (result > 0) {
+                    subscriber.onNext(song);
+                } else {
+                    subscriber.onError(new Exception("Set song level failed"));
+                }
+                subscriber.onCompleted();
+            }
+        });
+    }
+
     /**
      * 查询任务列表
      *

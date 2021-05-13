@@ -2,6 +2,8 @@ package io.github.ryanhoo.music.data.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.litesuits.orm.db.annotation.Column;
 import com.litesuits.orm.db.annotation.PrimaryKey;
 import com.litesuits.orm.db.annotation.Table;
 import com.litesuits.orm.db.annotation.Unique;
@@ -17,6 +19,8 @@ import com.litesuits.orm.db.enums.AssignType;
 @Table("song")
 public class Song implements Parcelable {
 
+    public static final String PATH = "path";
+
     @PrimaryKey(AssignType.AUTO_INCREMENT)
     private int id;
 
@@ -29,6 +33,7 @@ public class Song implements Parcelable {
     private String album;
 
     @Unique
+    @Column(PATH)
     private String path;
 
     private int duration;

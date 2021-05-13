@@ -49,6 +49,8 @@ import java.util.List;
 
     Observable<Song> setSongAsFavorite(Song song, boolean favorite);
 
+    Observable<Song> doTask(Task task);
+
     // Task
 
     /**

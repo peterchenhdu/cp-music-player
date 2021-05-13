@@ -24,10 +24,12 @@ public class PlayList implements Parcelable {
     // Play List: Favorite
     public static final int NO_POSITION = -1;
     public static final String COLUMN_FAVORITE = "favorite";
+    public static final String NAME = "name";
 
     @PrimaryKey(AssignType.AUTO_INCREMENT)
     private int id;
 
+    @Column(NAME)
     private String name;
 
     private int numOfSongs;
