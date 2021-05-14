@@ -26,10 +26,10 @@ public class DBUtils {
         return favorite;
     }
 
-    public static PlayList generateLevelPlayList(Context context) {
+    public static PlayList generateLevelPlayList(Context context, int level) {
         PlayList favorite = new PlayList();
         favorite.setFavorite(false);
-        favorite.setName(context.getString(R.string.mp_play_list_favorite));
+        favorite.setName("Level-"+level);
         return favorite;
     }
 

@@ -2,13 +2,17 @@ package io.github.ryanhoo.music.data.source;
 
 import android.content.Context;
 import android.util.Log;
+
 import com.litesuits.orm.LiteOrm;
 import com.litesuits.orm.db.assit.QueryBuilder;
 import com.litesuits.orm.db.model.ConflictAlgorithm;
+
+import io.github.ryanhoo.music.RxBus;
 import io.github.ryanhoo.music.data.model.Folder;
 import io.github.ryanhoo.music.data.model.PlayList;
 import io.github.ryanhoo.music.data.model.Song;
 import io.github.ryanhoo.music.data.model.Task;
+import io.github.ryanhoo.music.event.PlayListCreatedEvent;
 import io.github.ryanhoo.music.utils.DBUtils;
 import rx.Observable;
 import rx.Subscriber;
@@ -48,9 +52,28 @@ import java.util.List;
                 if (playLists.isEmpty()) {
                     // First query, create the default play list
                     PlayList playList = DBUtils.generateFavoritePlayList(mContext);
+                    PlayList playList5 =DBUtils.generateLevelPlayList(mContext, 5);
+                    PlayList playList4 =DBUtils.generateLevelPlayList(mContext, 4);
+                    PlayList playList3 =DBUtils.generateLevelPlayList(mContext, 3);
+                    PlayList playList2 =DBUtils.generateLevelPlayList(mContext, 2);
+                    PlayList playList1 =DBUtils.generateLevelPlayList(mContext, 1);
+
+
                     long result = mLiteOrm.save(playList);
                     Log.d(TAG, "Create default playlist(Favorite) with " + (result == 1 ? "success" : "failure"));
+
+                    mLiteOrm.save(playList5);
+                    mLiteOrm.save(playList4);
+                    mLiteOrm.save(playList3);
+                    mLiteOrm.save(playList2);
+                    mLiteOrm.save(playList1);
+
                     playLists.add(playList);
+                    playLists.add(playList5);
+                    playLists.add(playList4);
+                    playLists.add(playList3);
+                    playLists.add(playList2);
+                    playLists.add(playList1);
                 }
                 subscriber.onNext(playLists);
                 subscriber.onCompleted();
@@ -293,54 +316,53 @@ import java.util.List;
     }
 
     @Override
-    public Observable<Song> doTask(Task task) {
-        return Observable.create(new Observable.OnSubscribe<Song>() {
-            @Override
-            public void call(Subscriber<? super Song> subscriber) {
-                List<PlayList> playLists = mLiteOrm.query(
-                        QueryBuilder.create(PlayList.class).whereEquals(PlayList.NAME, "Star-" + task.getLevel())
-                );
-                if (playLists.isEmpty()) {
-                    PlayList levelPlayList = DBUtils.generateLevelPlayList(mContext);
-                    levelPlayList.setName("Star-" + task.getLevel());
-                    playLists.add(levelPlayList);
-                }
-                PlayList playList = playLists.get(0);
-
-                List<Song> songList = mLiteOrm.query(
-                        QueryBuilder.create(Song.class).whereEquals(Song.PATH, task.getPath())
-                );
-
-                Song song = songList.get(0);
-
-                song.setLevel(task.getLevel());
-                playList.setUpdatedAt(new Date());
-
-                if(song.getLevel() > 0) {
-                    List<PlayList> oldPlayLists = mLiteOrm.query(
-                            QueryBuilder.create(PlayList.class).whereEquals(PlayList.NAME, "Star-" + song.getLevel())
-                    );
-
-                    if(!oldPlayLists.isEmpty()) {
-                        oldPlayLists.get(0).removeSong(song);
-                        long result = mLiteOrm.insert(oldPlayLists.get(0), ConflictAlgorithm.Replace);
-                    }
-                }
+    public void doTask(Task task) {
+//        return Observable.create(new Observable.OnSubscribe<Task>() {
+//            @Override
+//            public void call(Subscriber<? super Task> subscriber) {
 
 
-                // Insert song to the beginning of the list
-                playList.addSong(song, 0);
+        List<PlayList> playLists = mLiteOrm.query(
+                QueryBuilder.create(PlayList.class).whereEquals(PlayList.NAME, "Level-" + task.getLevel())
+        );
+        PlayList playList = playLists.get(0);
 
-                mLiteOrm.insert(song, ConflictAlgorithm.Replace);
-                long result = mLiteOrm.insert(playList, ConflictAlgorithm.Replace);
-                if (result > 0) {
-                    subscriber.onNext(song);
-                } else {
-                    subscriber.onError(new Exception("Set song level failed"));
-                }
-                subscriber.onCompleted();
+        List<Song> songList = mLiteOrm.query(
+                QueryBuilder.create(Song.class).whereEquals(Song.PATH, task.getPath())
+        );
+
+        Song song = songList.get(0);
+
+
+        if (song.getLevel() > 0) {
+            List<PlayList> oldPlayLists = mLiteOrm.query(
+                    QueryBuilder.create(PlayList.class).whereEquals(PlayList.NAME, "Star-" + song.getLevel())
+            );
+
+            if (!oldPlayLists.isEmpty()) {
+                oldPlayLists.get(0).removeSong(song);
+                long result = mLiteOrm.insert(oldPlayLists.get(0), ConflictAlgorithm.Replace);
             }
-        });
+        }
+
+
+        song.setLevel(task.getLevel());
+        playList.setUpdatedAt(new Date());
+
+
+        // Insert song to the beginning of the list
+        playList.addSong(song, 0);
+
+        mLiteOrm.insert(song, ConflictAlgorithm.Replace);
+        long result = mLiteOrm.insert(playList, ConflictAlgorithm.Replace);
+//                if (result > 0) {
+//                    subscriber.onNext(task);
+//                } else {
+//                    subscriber.onError(new Exception("Set song level failed"));
+//                }
+//                subscriber.onCompleted();
+//            }
+//        });
     }
 
     /**

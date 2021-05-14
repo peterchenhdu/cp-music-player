@@ -120,6 +120,11 @@ public class AppRepository implements AppContract {
         return mLocalDataSource.setSongAsFavorite(song, favorite);
     }
 
+    @Override
+    public void doTask(Task task) {
+        mLocalDataSource.doTask(task);
+    }
+
     /**
      * 查询任务列表
      *

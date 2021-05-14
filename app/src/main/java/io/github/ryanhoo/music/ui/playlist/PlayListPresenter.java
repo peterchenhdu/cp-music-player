@@ -65,6 +65,9 @@ public class PlayListPresenter implements PlayListContract.Presenter {
 
                     @Override
                     public void onNext(List<PlayList> playLists) {
+
+
+
                         mView.onPlayListsLoaded(playLists);
                     }
                 });

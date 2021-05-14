@@ -49,7 +49,7 @@ import java.util.List;
 
     Observable<Song> setSongAsFavorite(Song song, boolean favorite);
 
-    Observable<Song> doTask(Task task);
+    void doTask(Task task);
 
     // Task
 
